@@ -34,18 +34,16 @@ public class Estimator implements PlanVisitor {
 		Relation input = rel.getOutput();
 		Relation output = new Relation(input.getTupleCount());
 
-		Iterator<Attribute> iter = input.getAttributes().iterator();
-		// Iterator<Attribute> proj_iter = attributes.iterator();
+		List<Attribute> iter = input.getAttributes();
 		for (int i = 0; i < attributes.size(); i++) {
-			while (iter.hasNext()) {
-				if (attributes.get(i) == iter.next()) {
-					Attribute attr = new Attribute(iter.next());
-					System.out.println(attr.getValueCount() + " "
-							+ attr.getName());
+			for (int j = 0; j < iter.size(); j++) {
+				if ((attributes.get(i).getName()).equals(iter.get(j).getName())) {
+					Attribute attr = new Attribute(iter.get(j));
 					output.addAttribute(attr);
 				}
 			}
 		}
+
 		op.setOutput(output);
 		(new Inspector()).visit(op);
 	}
