@@ -27,19 +27,39 @@ public class Estimator implements PlanVisitor {
 		op.setOutput(output);
 		(new Inspector()).visit(op);
 	}
+
+	//	public void visit(Project op) {
+//		List<Attribute> attributes = op.getAttributes();
+//		Operator rel = op.getInput();
+//		Relation input = rel.getOutput();
+//		Relation output = new Relation(input.getTupleCount());
+//
+//		List<Attribute> attr2 = input.getAttributes();
+//		for (int i = 0; i < attributes.size(); i++) {
+//			Attribute attr = new Attribute(findAttribute(attributes.get(i), attr2));
+//			if (attr != null) {
+//				output.addAttribute(attr);
+//			}
+//		}
+//		op.setOutput(output);
+//		(new Inspector()).visit(op);
+//	}
 	public void visit(Project op) {
 		List<Attribute> attributes = op.getAttributes();
 		Operator rel = op.getInput();
 		Relation input = rel.getOutput();
 		Relation output = new Relation(input.getTupleCount());
 
-		List<Attribute> attr2 = input.getAttributes();
+		List<Attribute> iter = input.getAttributes();
 		for (int i = 0; i < attributes.size(); i++) {
-			Attribute attr = new Attribute(findAttribute(attributes.get(i), attr2));
-			if (attr != null) {
-				output.addAttribute(attr);
+			for (int j = 0; j < iter.size(); j++) {
+				if ((attributes.get(i).getName()).equals(iter.get(j).getName())) {
+					Attribute attr = new Attribute(iter.get(j));
+					output.addAttribute(attr);
+				}
 			}
 		}
+
 		op.setOutput(output);
 		(new Inspector()).visit(op);
 	}
@@ -51,10 +71,13 @@ public class Estimator implements PlanVisitor {
 		float right_value_count = 0;
 		float rel_count = 0;
 		Relation output;
+		Attribute left_attr = pred.getLeftAttribute();
+		Attribute right_attr;
+		Attribute attr1;
+		Attribute attr2;
 
 		// loop through the attribute list and find the value count for the left attribute
 		List<Attribute> attributes = input.getAttributes();
-		Attribute left_attr = pred.getLeftAttribute();
 		if(findAttribute(left_attr, attributes)!=null) {
 			left_value_count = findAttribute(left_attr, attributes).getValueCount();
 		}
@@ -64,12 +87,21 @@ public class Estimator implements PlanVisitor {
 			String value = pred.getRightValue();
 			rel_count = input.getTupleCount()/left_value_count;
 			output = new Relation((int)rel_count);
+			attr1 = new Attribute(left_attr.getName(), 1);
+			output.addAttribute(attr1);
 		} else {
-			Attribute right_attr = pred.getRightAttribute();
+			right_attr = pred.getRightAttribute();
 			right_value_count = findAttribute(right_attr, attributes).getValueCount();
 			float max_value = Math.max(left_value_count, right_value_count);
-			output = new Relation(0);
+			rel_count = input.getTupleCount()/max_value;
+			output = new Relation((int)rel_count);
+			float min_value = Math.min(left_value_count, right_value_count);
+			attr1 = new Attribute(left_attr.getName(), (int) min_value);
+			attr2 = new Attribute(right_attr.getName(), (int) min_value);
+			output.addAttribute(attr1);
+			output.addAttribute(attr2);
 		}
+
 		op.setOutput(output);
 		(new Inspector()).visit(op);
 	}
