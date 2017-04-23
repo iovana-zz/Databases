@@ -58,34 +58,47 @@ public class Estimator implements PlanVisitor {
 		float rel_count = 0;
 		Relation output;
 		Attribute left_attr = pred.getLeftAttribute();
-		Attribute right_attr;
-		Attribute attr1;
-		Attribute attr2;
+		Attribute right_attr, attr1, attr2;
 
-		// loop through the attribute list and find the value count for the left attribute
+		//System.out.println("LEFT ATTR IS: " + left_attr);
+		System.out.println("PRED IS: " + pred);
+
+		// loop through the attribute list and find the value count for the left
+		// attribute
 		List<Attribute> attributes = input.getAttributes();
-		if(findAttribute(left_attr, attributes)!=null) {
-			left_value_count = findAttribute(left_attr, attributes).getValueCount();
+		left_attr = findAttribute(left_attr, attributes);
+
+//		for(int i=0; i < attributes.size(); i++) {
+////			System.out.println(attributes.get(i));
+//		}
+		//	System.out.println(left_attr);
+		if (left_attr != null) {
+			left_value_count = left_attr.getValueCount();
 		}
 
 		// true if the predicate is of the form attr=value
 		if (pred.equalsValue()) {
 			String value = pred.getRightValue();
-			rel_count = input.getTupleCount()/left_value_count;
-			output = new Relation((int)rel_count);
+			rel_count = input.getTupleCount() / left_value_count;
+			output = new Relation((int) rel_count);
 			attr1 = new Attribute(left_attr.getName(), 1);
 			output.addAttribute(attr1);
 		} else {
 			right_attr = pred.getRightAttribute();
-			right_value_count = findAttribute(right_attr, attributes).getValueCount();
-			float max_value = Math.max(left_value_count, right_value_count);
-			rel_count = input.getTupleCount()/max_value;
-			output = new Relation((int)rel_count);
-			float min_value = Math.min(left_value_count, right_value_count);
-			attr1 = new Attribute(left_attr.getName(), (int) min_value);
-			attr2 = new Attribute(right_attr.getName(), (int) min_value);
-			output.addAttribute(attr1);
-			output.addAttribute(attr2);
+			right_attr = findAttribute(right_attr, attributes);
+			if (right_attr != null) {
+				right_value_count = right_attr.getValueCount();
+				float max_value = Math.max(left_value_count, right_value_count);
+				rel_count = input.getTupleCount() / max_value;
+				output = new Relation((int) rel_count);
+				float min_value = Math.min(left_value_count, right_value_count);
+				attr1 = new Attribute(left_attr.getName(), (int) min_value);
+				attr2 = new Attribute(right_attr.getName(), (int) min_value);
+				output.addAttribute(attr1);
+				output.addAttribute(attr2);
+			} else {
+				output = new Relation(0);
+			}
 		}
 
 		op.setOutput(output);
@@ -118,10 +131,10 @@ public class Estimator implements PlanVisitor {
 		List<Attribute> right_attr = right_op.getOutput().getAttributes();
 
 		// and add the attributes
-		for(int i = 0; i <  left_attr.size(); i++) {
+		for (int i = 0; i < left_attr.size(); i++) {
 			output.addAttribute(left_attr.get(i));
 		}
-		for(int i = 0; i <  right_attr.size(); i++) {
+		for (int i = 0; i < right_attr.size(); i++) {
 			output.addAttribute(right_attr.get(i));
 		}
 		op.setOutput(output);
@@ -129,5 +142,17 @@ public class Estimator implements PlanVisitor {
 	}
 
 	public void visit(Join op) {
+		Operator left_op = op.getLeft();
+		Operator right_op = op.getRight();
+		Predicate pred = op.getPredicate();
+
+		// tuple count = T(R)T(S)/max(V(R,A),V(S,B))
+		System.out.println(left_op);
+		System.out.println(right_op);
+		System.out.println(pred);
+
+		Relation output = new Relation(0);
+		op.setOutput(output);
+		//	(new Inspector()).visit(op);
 	}
 }
