@@ -28,28 +28,15 @@ public class Estimator implements PlanVisitor {
 		(new Inspector()).visit(op);
 	}
 
-	//	public void visit(Project op) {
-//		List<Attribute> attributes = op.getAttributes();
-//		Operator rel = op.getInput();
-//		Relation input = rel.getOutput();
-//		Relation output = new Relation(input.getTupleCount());
-//
-//		List<Attribute> attr2 = input.getAttributes();
-//		for (int i = 0; i < attributes.size(); i++) {
-//			Attribute attr = new Attribute(findAttribute(attributes.get(i), attr2));
-//			if (attr != null) {
-//				output.addAttribute(attr);
-//			}
-//		}
-//		op.setOutput(output);
-//		(new Inspector()).visit(op);
-//	}
 	public void visit(Project op) {
+		// find the attributes of the projection
 		List<Attribute> attributes = op.getAttributes();
 		Operator rel = op.getInput();
 		Relation input = rel.getOutput();
+		// create new relation with the same tuple count as the input relation
 		Relation output = new Relation(input.getTupleCount());
 
+		// find the attributes and insert them in the new relation
 		List<Attribute> iter = input.getAttributes();
 		for (int i = 0; i < attributes.size(); i++) {
 			for (int j = 0; j < iter.size(); j++) {
@@ -59,7 +46,6 @@ public class Estimator implements PlanVisitor {
 				}
 			}
 		}
-
 		op.setOutput(output);
 		(new Inspector()).visit(op);
 	}
@@ -106,6 +92,7 @@ public class Estimator implements PlanVisitor {
 		(new Inspector()).visit(op);
 	}
 
+	// returns an attribute if found in the list
 	private Attribute findAttribute(Attribute attr, List<Attribute> attributes) {
 		for (int i = 0; i < attributes.size(); i++) {
 			if (attributes.get(i).equals(attr)) {
@@ -116,17 +103,21 @@ public class Estimator implements PlanVisitor {
 	}
 
 	public void visit(Product op) {
+		// get left and right operators
 		Operator left_op = op.getLeft();
 		Operator right_op = op.getRight();
 
+		// calculate the tuple count of the output relation
 		float left_tuple_count = left_op.getOutput().getTupleCount();
 		float right_tuple_count = right_op.getOutput().getTupleCount();
 		float tuple_count = left_tuple_count * right_tuple_count;
 
+		// create new relation
 		Relation output = new Relation((int) tuple_count);
 		List<Attribute> left_attr = left_op.getOutput().getAttributes();
 		List<Attribute> right_attr = right_op.getOutput().getAttributes();
 
+		// and add the attributes
 		for(int i = 0; i <  left_attr.size(); i++) {
 			output.addAttribute(left_attr.get(i));
 		}
