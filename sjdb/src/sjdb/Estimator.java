@@ -116,6 +116,30 @@ public class Estimator implements PlanVisitor {
 	}
 
 	public void visit(Product op) {
+		// T(RxS) = T{R}/T(S)
+		Operator left_op = op.getLeft();
+		Operator right_op = op.getRight();
+		System.out.println("op.getInputs  "+op.getInputs()); // returns [Person, Project]
+		System.out.println("left" + op.getLeft().getOutput().getAttributes());
+		System.out.println("right" + op.getRight().getOutput());
+		System.out.println("-------------");
+		//System.out.println(op.getRight());
+
+		float left_tuple_count = op.getLeft().getOutput().getTupleCount();
+		float right_tuple_count = op.getRight().getOutput().getTupleCount();
+		float tuple_count = left_tuple_count * right_tuple_count;
+
+		Relation output = new Relation((int) tuple_count);
+		List<Attribute> left_attr = op.getLeft().getOutput().getAttributes();
+		List<Attribute> right_attr = op.getRight().getOutput().getAttributes();
+		for(int i = 0; i <  left_attr.size(); i++) {
+			output.addAttribute(left_attr.get(i));
+		}
+		for(int i = 0; i <  right_attr.size(); i++) {
+			output.addAttribute(right_attr.get(i));
+		}
+		op.setOutput(output);
+		(new Inspector()).visit(op);
 	}
 
 	public void visit(Join op) {
